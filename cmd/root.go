@@ -51,7 +51,7 @@ var rootCmd = &cobra.Command{
 			recover()
 			conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			<-time.After(time.Second)
-			fmt.Println("Disconnect ", conn.RemoteAddr())
+			fmt.Println("Disconnected from server", u.String())
 		}()
 
 		done := make(chan struct{})
