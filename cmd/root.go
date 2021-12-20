@@ -28,6 +28,7 @@ var rootCmd = &cobra.Command{
 	Short: "a cli client for yabl interpreter server.",
 	Long:  "A yabl chat client in go, using cli as interface.",
 	Run: func(cmd *cobra.Command, args []string) {
+		//parse adress and port from flags
 		flags := cmd.Flags()
 		laddr, err := flags.GetString("address")
 		if err != nil {
@@ -37,12 +38,16 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalln(err)
 		}
+		
+		//generate url from address and port.
 		u := url.URL{Scheme: "ws", Host: laddr + ":" + port, Path: "/ws"}
 		fmt.Println("Connecting to server", u.String())
 
+		//detect ctrl + c action so that can close websocket connection normally.
 		interrupt := make(chan os.Signal, 1)
 		signal.Notify(interrupt, os.Interrupt)
 
+		//connect yabl server
 		conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 		if err != nil {
 			log.Fatalln("dial:", err)
@@ -54,8 +59,10 @@ var rootCmd = &cobra.Command{
 			fmt.Println("Disconnected from server", u.String())
 		}()
 
+		//a channel to connct all goroutines, use to close the program.
 		done := make(chan struct{})
-
+			
+		//a goroutine to receive and show server-sent message.
 		go func() {
 			defer close(done)
 			for {
@@ -79,6 +86,7 @@ var rootCmd = &cobra.Command{
 			}
 		}()
 
+		//a goroutine to send messages read from stdin.
 		go func() {
 			defer close(done)
 			for {
@@ -103,6 +111,7 @@ var rootCmd = &cobra.Command{
 			}
 		}()
 
+		//wait for the done channel and ctrl + c action, then return the program.
 		for {
 			select {
 			case <-done:
