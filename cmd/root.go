@@ -20,7 +20,8 @@ var rootCmd = &cobra.Command{
 	Use:   "yabl-client",
 	Short: "a cli client for yabl interpreter server.",
 	Long:  "A yabl chat client in go, using cli as interface.",
-	Run: func(cmd *cobra.Command, args []string) {
+	Args:  cobra.NoArgs,
+	Run: func(cmd *cobra.Command, _ []string) {
 		//parse adress and port from flags
 		flags := cmd.Flags()
 		laddr, err := flags.GetString("address")
@@ -42,7 +43,6 @@ var rootCmd = &cobra.Command{
 			log.Fatalln("dial:", err)
 		}
 		defer func() {
-			recover()
 			conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			<-time.After(time.Second)
 			fmt.Println("Disconnected from server", u.String())
