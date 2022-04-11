@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -18,8 +19,8 @@ type MsgStruct struct {
 //client serving function.
 func ClientRoutine(conn *websocket.Conn) {
 	//detect ctrl + c action so that can close websocket connection normally.
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt)
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
 	//a channel to connct all goroutines, use to close the program.
 	done := make(chan int)
@@ -82,7 +83,7 @@ func ClientRoutine(conn *websocket.Conn) {
 		select {
 		case <-done:
 			return
-		case <-interrupt:
+		case <-sigCh:
 			fmt.Println("Got interrupt message, existing...")
 			return
 		}
